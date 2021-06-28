@@ -80,8 +80,9 @@ def transform_immigration_data(spark, immig_df):
     dimen_person_table = data_modeling.dimen_person_table(cleaned_immig_data)
     dimen_person_table.show(3)
     
-    data_modeling.fact_table(cleaned_immig_data).show(3)    
+    data_modeling.fact_table(cleaned_immig_data).printSchema()    
     
+    return 0
     
     #dimen_visa_table = data_modeling.dimen_visa_table(cleaned_immig_data)
     #dimen_visa_table.show(10)
@@ -98,7 +99,7 @@ def transform_demographic_data(spark, demo_df):
     dimen_state_table = data_modeling.dimen_state_table(cleaned_demo_data) 
     #dimen_state_table.show(3)
     
-    
+    return 1
 def main():
 
     # Spark session
