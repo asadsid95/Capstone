@@ -11,14 +11,17 @@ from pyspark.sql.functions import count, when, isnull, udf, col, dayofmonth, yea
 
 def dimen_time_table(cleaned_immig_data):
 
+    '''
+    Creates dimension table for time
+    '''
+    
     get_timestamp = udf(lambda x : (datetime.date(1960, 1, 1) + datetime.timedelta(days=x)).isoformat() if x else none)
     
     formatted_arrdate = cleaned_immig_data.withColumn('timestamp', get_timestamp(cleaned_immig_data.arrdate))
     #df.show(3)
     
-    #dim_time = 
     dimen_time_table = formatted_arrdate.select(\
-        col("timestamp").alias('day of arrival'),
+        col("timestamp").alias('day_of_arrival'),
         year("timestamp").alias('year'),
         month('timestamp').alias('month'),
         dayofmonth('timestamp').alias('day'))
@@ -27,13 +30,32 @@ def dimen_time_table(cleaned_immig_data):
 
 def dimen_state_table(cleaned_demo_data):
     
+    '''
+    Creates dimension table for US States
+    '''
+    
     dimen_state_table = cleaned_demo_data.withColumn('id', monotonically_increasing_id())
     
     dimen_state_table = dimen_state_table.select(['id','City', 'State', 'State Code', 'Median Age', 'Male Population', 'Female Population', 'Total Population', 'Number of Veterans', 'Foreign-born', 'Average Household Size'])
-        
+    
+    dimen_state_table = dimen_state_table.withColumnRenamed('City', 'city') \
+                        .withColumnRenamed('State','state') \
+                        .withColumnRenamed('State Code', 'state_code') \
+                        .withColumnRenamed('Median Age', 'median_age') \
+                        .withColumnRenamed('Male Population', 'male_population') \
+                        .withColumnRenamed('Female Population', 'female_population') \
+                        .withColumnRenamed('Total Population', 'total_population') \
+                        .withColumnRenamed('Number of Veterans', 'number_of_veterans') \
+                        .withColumnRenamed('Foreign-born','number_of_foreign_born') \
+                        .withColumnRenamed('Average Household Size','avg_household_size')
+    
     return dimen_state_table
     
 def dimen_person_table(cleaned_immig_data):
+    
+    '''
+    Creates dimension table for persons arriving in US
+    '''
     
     dimen_person_table = cleaned_immig_data.select(['cicid', 'i94bir', 'admnum', 'i94cit', 'i94res', 'i94mode', 'i94mon', 'visatype'])
     
@@ -42,38 +64,17 @@ def dimen_person_table(cleaned_immig_data):
     dimen_person_table = dimen_person_table.select(['id', 'cicid', 'i94bir', 'admnum', 'i94cit', 'i94res', 'i94mode', 'i94mon', 'visatype'])
 
     return dimen_person_table
-'''    
-def dimen_visa_table(cleaned_immig_data):
-    
-    dimen_visa_table = cleaned_immig_data.select(['visatype']).distinct()
-    
-    dimen_visa_table = dimen_visa_table.withColumn('id', monotonically_increasing_id())
-    
-    dimen_visa_table = dimen_visa_table.select(['id', 'visatype'])
 
-    return dimen_visa_table  
-'''  
 def fact_table(cleaned_immig_data):
     
-    fact_table = cleaned_immig_data.select(['cicid', 'arrdate', 'depdate', 'i94mode', 'i94addr']) # need to add column with duration of visit/residence, in days
+    '''
+    Creates fact table for arrival events
+    '''
+    
+    fact_table = cleaned_immig_data.select(['cicid', 'arrdate', 'depdate', 'i94mode', 'i94addr','i94mon']) # need to add column with duration of visit/residence, in days
 
-    get_timestamp = udf(lambda x : (datetime.date(1960, 1, 1) + datetime.timedelta(days=x)).isoformat() if x else none)
+    ### Returning the following table with added column caused 'Java Runtime error'
+    #get_timestamp = udf(lambda x : (datetime.date(1960, 1, 1) + datetime.timedelta(days=x)).isoformat() if x else none)
+    #formatted_arrdate = fact_table.withColumn('timestamp', get_timestamp(fact_table.arrdate))
     
-    formatted_arrdate = fact_table.withColumn('timestamp', get_timestamp(cleaned_immig_data.arrdate))
-    
-    formatted_arrdate.show(3)
-    
-    #duration_stay_table_added = formatted_arrdate
-    
-def main():
-    
-    try:
-        immigration_fact_table = immigration_df.select(["i94mon","biryear"]).show()
-        print(type(immigration_fact_table))
-        #immigration_fact_table.write.parquet('/',)
-    
-    except:
-        print(3)
-
-if __name__ == "__main__":
-    main()
+    return fact_table
