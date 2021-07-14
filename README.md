@@ -1,4 +1,6 @@
-This is the capstone project for Udacity's Data Engineering Nanodegree.
+# Project: Data pipeline for US 2016 Immigration Data
+
+*This is the capstone project for Udacity's Data Engineering Nanodegree.
 
 Leading up to this, following objectives using various technologies were achieved:
 - Defining data models and creating ETL pipelines for PostgreSQL & Cassandra databases
